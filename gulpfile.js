@@ -11,7 +11,7 @@ import tar from 'tar'
 
 const zipFile = './tmp/guacamole.tar.gz'
 const packageJsonFile = 'package.json'
-const tmpGitDir = './tmp/github'
+const tmpGitDir = './tmp/guacamole-client-master'
 const distDir = './dist'
 
 // thanks to https://github.com/nodejs/help/issues/2377#issuecomment-569537291
@@ -49,7 +49,7 @@ gulp.task('getGuacamole', function (callback) {
 })
 
 gulp.task('updateVersion', function (callback) {
-    const xmlFile = fs.readFileSync(`${tmpGitDir}/guacamole-client-master/guacamole-common-js/pom.xml`);
+    const xmlFile = fs.readFileSync(`${tmpGitDir}/guacamole-common-js/pom.xml`);
     xml2js.parseString(xmlFile, function (parseErr, result) {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonFile, 'utf8'))
         packageJson.version = result['project']['version'][0]
@@ -61,7 +61,7 @@ gulp.task('updateVersion', function (callback) {
 function createJs(format, exportCode) {
     const dir = `${distDir}/${format}`
 
-    return gulp.src(`${tmpGitDir}/guacamole-client-master/guacamole-common-js/src/main/webapp/modules/*.js`)
+    return gulp.src(`${tmpGitDir}/guacamole-common-js/src/main/webapp/modules/*.js`)
         .pipe(concat('index.js'))
         .pipe(insert.append(exportCode))
         .pipe(gulp.dest(dir))
