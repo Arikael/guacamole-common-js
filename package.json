@@ -2,6 +2,7 @@
   "name": "@arikael/guacamole-common-js",
   "version": "1.5.3",
   "description": "The Guacamole javascript client",
+  "private": false,
   "scripts": {
     "build": "gulp"
   },
