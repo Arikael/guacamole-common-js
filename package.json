@@ -1,0 +1,46 @@
+{
+  "name": "@arikael/guacamole-common-js",
+  "version": "1.5.3",
+  "description": "The Guacamole javascript client",
+  "scripts": {
+    "build": "gulp"
+  },
+  "main": "dist/cjs/guacamole-common.js",
+  "module": "dist/esm/guacamole-common.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arikael/guacamole-common-js.git"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-insert": "^0.5.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-uglify": "^3.0.2",
+    "tar": "^6.2.0",
+    "xml2js": "^0.6.2"
+  },
+  "keywords": [
+    "guacamole",
+    "common",
+    "js",
+    "guac",
+    "remote",
+    "desktop",
+    "vnc",
+    "rdp",
+    "ssh",
+    "telnet"
+  ],
+  "author": "Michael Haeberle",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://issues.apache.org/jira/browse/GUACAMOLE/"
+  },
+  "homepage": "https://github.com/Arikael/guacamole-common-js"
+}
