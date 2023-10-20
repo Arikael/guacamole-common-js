@@ -76,7 +76,10 @@ gulp.task('createEsm', function () {
 
 gulp.task('createCjs', function () {
     return createJs('cjs', 'module.exports = Guacamole;')
-
 });
 
-gulp.task('default', gulp.series('getGuacamole', 'updateVersion', 'createEsm', 'createCjs'))
+gulp.task('createPlainJs', function () {
+    return createJs('js', '')
+});
+
+gulp.task('default', gulp.series('getGuacamole', 'updateVersion', 'createEsm', 'createCjs', 'createPlainJs'))
