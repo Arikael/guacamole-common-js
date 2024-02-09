@@ -5,51 +5,54 @@ import fs from 'node:fs'
 import xml2js from 'xml2js'
 import uglify from 'gulp-uglify'
 import rename from 'gulp-rename'
-import https from 'node:https'
-import url from 'node:url'
 import tar from 'tar'
+import axios from 'axios'
 
-const zipFile = './tmp/guacamole.tar.gz'
+const tmpDir = './tmp'
+const zipFile = `${tmpDir}/guacamole.tar.gz`
 const packageJsonFile = 'package.json'
-const tmpGitDir = './tmp/guacamole-client-master'
 const distDir = './dist'
+let taggedDir = ''
 
-// thanks to https://github.com/nodejs/help/issues/2377#issuecomment-569537291
-gulp.task('getGuacamole', function (callback) {
-    fs.mkdirSync(tmpGitDir, {recursive: true})
-    const file = fs.createWriteStream(zipFile);
-    https.get('https://github.com/apache/guacamole-client/archive/refs/heads/master.tar.gz', (response) => {
-        if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
-            if (url.parse(response.headers.location).hostname) {
-                https.get(response.headers.location, (data) => {
-                    data.pipe(file);
-                });
-            } else {
-                https.get(url.resolve(url.parse(url).hostname, response.headers.location), (data) => {
-                    data.pipe(file);
-                });
-            }
-        } else {
-            response.pipe(file);
-        }
-    }).on('error', (error) => {
-        console.error(error);
-    });
+gulp.task('getGuacamole', async function () {
+    return new Promise(async function(resolve, _) {
+        fs.mkdirSync(tmpDir, {recursive: true})
+        const file = fs.createWriteStream(zipFile);
+        const tagResult = await axios.get('https://api.github.com/repos/apache/guacamole-client/tags')
+        const tag = tagResult.data[0].name
+        taggedDir = `${tmpDir}/guacamole-client-${tag}`
+        const fileResult = await axios.get(`https://github.com/apache/guacamole-client/archive/refs/tags/${tag}.tar.gz`, {
+            responseType: 'stream'
+        })
 
-    file.on('finish', () => {
-        const comp = fs.createReadStream(zipFile);
-        tar.extract({
-            cwd: './tmp',
-            file: comp.path,
-            sync: true
+        fileResult.data.pipe(file)
+        file.on('finish', () => {
+            const comp = fs.createReadStream(zipFile);
+            tar.extract({
+                cwd: './tmp',
+                file: comp.path,
+                sync: true
+            });
+
+            resolve()
         });
+    })
+})
 
-        callback()
-    });
+gulp.task('clean', function(callback) {
+    if(fs.existsSync(distDir)) {
+        fs.rmSync(distDir, {recursive: true})
+    }
+
+    if(fs.existsSync(tmpDir)) {
+        fs.rmSync(tmpDir, {recursive: true, force: true})
+    }
+
+    callback()
 })
 
 gulp.task('updateVersion', function (callback) {
-    const xmlFile = fs.readFileSync(`${tmpGitDir}/guacamole-common-js/pom.xml`);
+    const xmlFile = fs.readFileSync(`${taggedDir}/guacamole-common-js/pom.xml`);
     xml2js.parseString(xmlFile, function (parseErr, result) {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonFile, 'utf8'))
         packageJson.version = result['project']['version'][0]
@@ -61,7 +64,7 @@ gulp.task('updateVersion', function (callback) {
 function createJs(format, exportCode) {
     const dir = `${distDir}/${format}`
 
-    return gulp.src(`${tmpGitDir}/guacamole-common-js/src/main/webapp/modules/*.js`)
+    return gulp.src(`${taggedDir}/guacamole-common-js/src/main/webapp/modules/*.js`)
         .pipe(concat('index.js'))
         .pipe(insert.append(exportCode))
         .pipe(gulp.dest(dir))
@@ -82,4 +85,4 @@ gulp.task('createPlainJs', function () {
     return createJs('js', '')
 });
 
-gulp.task('default', gulp.series('getGuacamole', 'updateVersion', 'createEsm', 'createCjs', 'createPlainJs'))
+gulp.task('default', gulp.series('clean', 'getGuacamole', 'updateVersion', 'createEsm', 'createCjs', 'createPlainJs'))
