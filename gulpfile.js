@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import xml2js from 'xml2js'
 import uglify from 'gulp-uglify'
 import rename from 'gulp-rename'
-import tar from 'tar'
+import {extract} from 'tar'
 import axios from 'axios'
 
 const tmpDir = './tmp'
@@ -28,7 +28,7 @@ gulp.task('getGuacamole', async function () {
         fileResult.data.pipe(file)
         file.on('finish', () => {
             const comp = fs.createReadStream(zipFile);
-            tar.extract({
+            extract({
                 cwd: './tmp',
                 file: comp.path,
                 sync: true
